@@ -62,11 +62,11 @@ class StaticAccessTokenMiddleware {
           }
         }
         
-        this.stuff.logger.info(`[static-token] Swapping static token for JWT User: ${overwrite.user || 'static-user'}`)
+        this.stuff.logger.info(`[static-token] Swapping static token for JWT User: ${overwrite.user}`)
         
         // Generate a REAL JWT compatible with Verdaccio 6
         req.headers.authorization = this._buildVerdaccio6JWT(
-          overwrite.user || 'static-user',
+          overwrite.user,
           verdaccioSecret,
           overwrite.readonly
         );
@@ -83,7 +83,7 @@ class StaticAccessTokenMiddleware {
     // Payload (Must include standard Verdaccio groups)
     const payload = {
       name: user,
-      groups: readonly ? ['$all', '$authenticated'] : ['$all', '$authenticated', '@all', '@authenticated'],
+      groups: readonly ? ['$all', '$authenticated', 'ci-readonly'] : ['$all', '$authenticated', '@all', '@authenticated', 'ci-readwrite'],
       iat: Math.floor(Date.now() / 1000), // Issued at now
       exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // Expires in 1 day
     };
