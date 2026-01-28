@@ -5,10 +5,10 @@ const crypto = require('crypto')
 class StaticAccessTokenMiddleware {
   constructor(config, stuff) {
     this.stuff = stuff;
-    this.stuff.logger.info('Configuring verdaccio-static-token');
+    this.stuff.logger.info('[verdaccio-static-access-token] Configuring');
 
     if (!config || config.enabled === false) {
-      this.stuff.logger.info('verdaccio-static-token is disabled');
+      this.stuff.logger.info('[verdaccio-static-access-token] Disabled');
       this.tokens = [];
       return;
     }
@@ -18,20 +18,20 @@ class StaticAccessTokenMiddleware {
 
   register_middlewares(app, authInstance, storageInstance) {   
     if (!this.tokens.length) {
-      this.stuff.logger.error('[verdaccio-static-token] No tokens configured, skipping middleware setup')
+      this.stuff.logger.error('[verdaccio-static-access-token] No tokens configured, skipping middleware setup')
       return;
     }
 
     this.tokens.forEach(t => {
       if (!t || !t.key || !t.user) {
-        throw new Error('A token is missing a key or user.');
+        throw new Error('[verdaccio-static-access-token] A token is missing a key or user.');
       }
       if (t.key.length < 16) {
-        throw new Error(`Token "${t.key}" for user "${t.user}" is too insecure. Must be at least 16 characters long.`);
+        throw new Error(`[verdaccio-static-access-token] Token "${t.key}" for user "${t.user}" is too insecure. Must be at least 16 characters long.`);
       }
     });
 
-    this.stuff.logger.info(`[verdaccio-static-token] register_middlewares loaded ${this.tokens.length} tokens`);
+    this.stuff.logger.info(`[verdaccio-static-access-token] register_middlewares loaded ${this.tokens.length} tokens`);
 
     // Create a map of 'Bearer <token>' to token config for quick lookup
     const accessTokens = new Map(this.tokens
@@ -57,12 +57,12 @@ class StaticAccessTokenMiddleware {
         if (overwrite.readonly) {
           const writeMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
           if (writeMethods.includes(req.method.toUpperCase())) {
-            this.stuff.logger.warn(`[static-token] Read-only token used for write method: ${req.method} ${req.url}`);
+            this.stuff.logger.warn(`[verdaccio-static-access-token] Read-only token used for write method: ${req.method} ${req.url}`);
             return res.status(403).send('Forbidden: Read-only token');
           }
         }
-        
-        this.stuff.logger.info(`[static-token] Swapping static token for JWT User: ${overwrite.user}`)
+
+        this.stuff.logger.info(`[verdaccio-static-access-token] Swapping static token for JWT User: ${overwrite.user}`)
         
         // Generate a REAL JWT compatible with Verdaccio 6
         req.headers.authorization = this._buildVerdaccio6JWT(
