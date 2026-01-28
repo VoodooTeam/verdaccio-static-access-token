@@ -13,10 +13,15 @@ class StaticAccessTokenMiddleware {
       return;
     }
 
-    this.tokens = config.staticAccessTokens || [];
+    this.tokens = config.tokens || [];
   }
 
-  register_middlewares(app, authInstance, storageInstance) {
+  register_middlewares(app, authInstance, storageInstance) {   
+    if (!this.tokens.length) {
+      this.stuff.logger.error('[verdaccio-static-token] No tokens configured, skipping middleware setup')
+      return;
+    }
+
     this.tokens.forEach(t => {
       if (!t || !t.key || !t.user) {
         throw new Error('A token is missing a key or user.');
@@ -26,13 +31,7 @@ class StaticAccessTokenMiddleware {
       }
     });
 
-    this.stuff.logger.info(`Loaded ${this.tokens.length} static access tokens.`);
-
-    if (!this.tokens.length) {
-      return;
-    }
-
-    this.stuff.logger.info('[verdaccio-static-token] register_middlewares loaded')
+    this.stuff.logger.info(`[verdaccio-static-token] register_middlewares loaded ${this.tokens.length} tokens`);
 
     // Create a map of 'Bearer <token>' to token config for quick lookup
     const accessTokens = new Map(this.tokens

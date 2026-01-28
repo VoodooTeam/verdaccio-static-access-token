@@ -7,7 +7,7 @@ web:
 middlewares:
   static-access-token:
     enabled: true
-    staticAccessTokens:
+    tokens:
       - key: my-super-secret-key
         user: verdaccio-user
         readonly: true
