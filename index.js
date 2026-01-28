@@ -38,14 +38,13 @@ class StaticAccessTokenMiddleware {
       .map(_ => `Bearer ${_.key}`)
       .map((authHeader, i) => [authHeader, this.tokens[i]]))
 
-
     // Verdaccio 6 might hide the secret in 'security.api.jwt.secret', fallback to 'secret'
     const globalConfig = storageInstance.config;
     const verdaccioSecret = globalConfig.security?.api?.jwt?.secret || globalConfig.secret;
 
     app.use((req, res, next) => {
 
-      // Check if the authorization header is valid and present in the request
+      // Just skip it LOL
       if (!req.headers || !req.headers.authorization) {
         return next()
       }
@@ -75,12 +74,10 @@ class StaticAccessTokenMiddleware {
     })
   }
 
-  // --- FIX 4: Valid JWT Generator (HS256) ---
   _buildVerdaccio6JWT(user, secret, readonly) {
-    // Header
     const header = { alg: 'HS256', typ: 'JWT' };
     
-    // Payload (Must include standard Verdaccio groups)
+    // Payload must include standard Verdaccio groups!
     const payload = {
       name: user,
       groups: readonly ? ['$all', '$authenticated', 'ci-readonly'] : ['$all', '$authenticated', '@all', '@authenticated', 'ci-readwrite'],
@@ -88,7 +85,6 @@ class StaticAccessTokenMiddleware {
       exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // Expires in 1 day
     };
 
-    // Helper for Base64URL encoding (required for JWT)
     const base64Url = (obj) => Buffer.from(JSON.stringify(obj))
       .toString('base64')
       .replace(/=/g, '')
@@ -99,7 +95,6 @@ class StaticAccessTokenMiddleware {
     const encodedPayload = base64Url(payload);
     const unsignedToken = `${encodedHeader}.${encodedPayload}`;
 
-    // Signature
     const signature = crypto.createHmac('sha256', secret)
       .update(unsignedToken)
       .digest('base64')
