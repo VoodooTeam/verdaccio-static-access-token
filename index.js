@@ -7,7 +7,9 @@ class StaticAccessTokenMiddleware {
     this.stuff = stuff;
     this.stuff.logger.info('[verdaccio-static-access-token] Configuring');
 
-    if (!config || config.enabled === false) {
+    this.enabled = config && config.enabled !== false;
+
+    if (!this.enabled) {
       this.stuff.logger.info('[verdaccio-static-access-token] Disabled');
       this.tokens = [];
       return;
@@ -16,7 +18,10 @@ class StaticAccessTokenMiddleware {
     this.tokens = config.tokens || [];
   }
 
-  register_middlewares(app, authInstance, storageInstance) {   
+  register_middlewares(app, authInstance, storageInstance) {
+    if (!this.enabled) {
+      return;    
+    }
     if (!this.tokens.length) {
       this.stuff.logger.error('[verdaccio-static-access-token] No tokens configured, skipping middleware setup')
       return;
