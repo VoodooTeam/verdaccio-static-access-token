@@ -18,6 +18,7 @@ class StaticAccessTokenMiddleware {
     this.tokens = config.tokens || []
   }
 
+  // eslint-disable-next-line camelcase
   register_middlewares (app, authInstance, storageInstance) {
     if (!this.enabled) {
       return
