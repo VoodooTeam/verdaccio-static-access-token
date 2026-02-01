@@ -1,6 +1,6 @@
 {
   "name": "verdaccio-static-access-token",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Middleware for Verdaccio 6+ to support static access tokens for CI/CD workflows",
   "main": "index.js",
   "scripts": {
