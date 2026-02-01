@@ -65,22 +65,28 @@ middlewares:
 
 ## Usage
 
-Once the plugin is configured, you can use the tokens to authenticate with Verdaccio.
+Once the plugin is configured, you can use the tokens to authenticate with Verdaccio. The token must be **base64 encoded** before being used.
+
+You can encode your token using the following command:
+
+```bash
+echo -n "my-super-secret-token" | base64
+```
 
 ### NPM
 
-Set the token in your `.npmrc` file:
+Set the base64 encoded token in your `.npmrc` file:
 
 ```
-//my-verdaccio-registry.com/:_authToken="my-super-secret-token"
+//my-verdaccio-registry.com/:_authToken="bXktc3VwZXItc2VjcmV0LXRva2Vu"
 ```
 
 ### cURL
 
-You can also use the token with `curl`:
+You can also use the base64 encoded token with `curl`:
 
 ```bash
-curl -H "Authorization: Bearer my-super-secret-token" http://my-verdaccio-registry.com/my-package
+curl -H "Authorization: Bearer bXktc3VwZXItc2VjcmV0LXRva2Vu" http://my-verdaccio-registry.com/my-package
 ```
 
 ## Permissions

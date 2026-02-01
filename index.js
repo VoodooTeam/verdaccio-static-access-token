@@ -41,7 +41,7 @@ class StaticAccessTokenMiddleware {
 
     // Create a map of 'Bearer <token>' to token config for quick lookup
     const accessTokens = new Map(this.tokens
-      .map(_ => `Bearer ${_.key}`)
+      .map(_ => `Bearer ${Buffer.from(_.key).toString('base64')}`)
       .map((authHeader, i) => [authHeader, this.tokens[i]]))
 
     // Verdaccio 6 might hide the secret in 'security.api.jwt.secret', fallback to 'secret'
