@@ -2,8 +2,11 @@
   "name": "verdaccio-static-access-token",
   "version": "1.0.0",
   "description": "Middleware for Verdaccio 6+ to support static access tokens for CI/CD workflows",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "standard"
   },
   "repository": {
@@ -25,7 +28,10 @@
   "homepage": "https://github.com/VoodooTeam/verdaccio-static-access-token#readme",
   "dependencies": {},
   "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
     "standard": "^12.0.1",
+    "typescript": "^5.3.0",
     "verdaccio": "^3.11.6"
   }
 }
