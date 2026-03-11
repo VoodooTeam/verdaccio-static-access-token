@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
 
+const LOG_TAG = 'verdaccio-static-access-token';
+
 interface StaticTokenConfig {
   key: string;
   user: string;
@@ -40,12 +42,12 @@ class StaticAccessTokenMiddleware {
 
   constructor(config: PluginConfig | undefined, stuff: PluginStuff) {
     this.stuff = stuff;
-    this.stuff.logger.info('[verdaccio-static-access-token] Configuring');
+    this.stuff.logger.info(`[${LOG_TAG}] Configuring`);
 
     this.enabled = config != null && config.enabled !== false;
 
     if (!this.enabled) {
-      this.stuff.logger.info('[verdaccio-static-access-token] Disabled');
+      this.stuff.logger.info(`[${LOG_TAG}] Disabled`);
       this.tokens = [];
       return;
     }
@@ -64,7 +66,7 @@ class StaticAccessTokenMiddleware {
     }
     if (!this.tokens.length) {
       this.stuff.logger.error(
-        '[verdaccio-static-access-token] No tokens configured, skipping middleware setup'
+        `[${LOG_TAG}] No tokens configured, skipping middleware setup`
       );
       return;
     }
@@ -75,7 +77,7 @@ class StaticAccessTokenMiddleware {
 
     if (!verdaccioSecret || verdaccioSecret.trim() === '') {
       this.stuff.logger.warn(
-        '[verdaccio-static-access-token] No JWT secret configured (security.api.jwt.secret or secret). Skipping middleware.'
+        `[${LOG_TAG}] No JWT secret configured (security.api.jwt.secret or secret). Skipping middleware.`
       );
       return;
     }
@@ -83,18 +85,18 @@ class StaticAccessTokenMiddleware {
     for (const t of this.tokens) {
       if (!t?.key || !t?.user) {
         throw new Error(
-          '[verdaccio-static-access-token] A token is missing a key or user.'
+          `[${LOG_TAG}] A token is missing a key or user.`
         );
       }
       if (t.key.length < 16) {
         throw new Error(
-          `[verdaccio-static-access-token] Token "${t.key}" for user "${t.user}" is too insecure. Must be at least 16 characters long.`
+          `[${LOG_TAG}] Token "${t.key}" for user "${t.user}" is too insecure. Must be at least 16 characters long.`
         );
       }
     }
 
     this.stuff.logger.info(
-      `[verdaccio-static-access-token] register_middlewares loaded ${this.tokens.length} tokens`
+      `[${LOG_TAG}] register_middlewares loaded ${this.tokens.length} tokens`
     );
 
     const accessTokens = new Map(
@@ -118,14 +120,14 @@ class StaticAccessTokenMiddleware {
           const writeMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
           if (writeMethods.includes(req.method.toUpperCase())) {
             this.stuff.logger.warn(
-              `[verdaccio-static-access-token] Read-only token used for write method: ${req.method} ${req.url}`
+              `[${LOG_TAG}] Read-only token used for write method: ${req.method} ${req.url}`
             );
             return res.status(403).send('Forbidden: Read-only token');
           }
         }
 
         this.stuff.logger.info(
-          `[verdaccio-static-access-token] Swapping static token for JWT User: ${overwrite.user}`
+          `[${LOG_TAG}] Swapping static token for JWT User: ${overwrite.user}`
         );
 
         req.headers.authorization = this.buildVerdaccio6JWT(
