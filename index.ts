@@ -104,9 +104,7 @@ class StaticAccessTokenMiddleware {
       this.tokens
         .map((_) => `Bearer ${Buffer.from(_.key).toString('base64')}`)
         .map((authHeader, i) => [authHeader, this.tokens[i]] as const)
-    );
-
-    
+    );    
 
     app.use((req: Request, res: Response, next: NextFunction) => {
       if (!req.headers?.authorization) {
