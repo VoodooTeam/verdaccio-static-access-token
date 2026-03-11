@@ -69,6 +69,17 @@ class StaticAccessTokenMiddleware {
       return;
     }
 
+    const globalConfig = storageInstance.config;
+    const verdaccioSecret =
+      globalConfig.security?.api?.jwt?.secret ?? globalConfig.secret;
+
+    if (!verdaccioSecret || verdaccioSecret.trim() === '') {
+      this.stuff.logger.warn(
+        '[verdaccio-static-access-token] No JWT secret configured (security.api.jwt.secret or secret). Skipping middleware.'
+      );
+      return;
+    }
+
     for (const t of this.tokens) {
       if (!t?.key || !t?.user) {
         throw new Error(
@@ -92,9 +103,7 @@ class StaticAccessTokenMiddleware {
         .map((authHeader, i) => [authHeader, this.tokens[i]] as const)
     );
 
-    const globalConfig = storageInstance.config;
-    const verdaccioSecret =
-      globalConfig.security?.api?.jwt?.secret ?? globalConfig.secret;
+    
 
     app.use((req: Request, res: Response, next: NextFunction) => {
       if (!req.headers?.authorization) {
@@ -121,7 +130,7 @@ class StaticAccessTokenMiddleware {
 
         req.headers.authorization = this.buildVerdaccio6JWT(
           overwrite.user,
-          verdaccioSecret ?? '',
+          verdaccioSecret,
           overwrite.readonly ?? false
         );
       }
