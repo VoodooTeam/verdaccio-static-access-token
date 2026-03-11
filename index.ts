@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
 
 const LOG_TAG = 'verdaccio-static-access-token';
+const MIN_TOKEN_LENGTH = 16;
 
 interface StaticTokenConfig {
   key: string;
@@ -88,9 +89,9 @@ class StaticAccessTokenMiddleware {
           `[${LOG_TAG}] A token is missing a key or user.`
         );
       }
-      if (t.key.length < 16) {
+      if (t.key.length < MIN_TOKEN_LENGTH) {
         throw new Error(
-          `[${LOG_TAG}] Token "${t.key}" for user "${t.user}" is too insecure. Must be at least 16 characters long.`
+          `[${LOG_TAG}] Token "${t.key}" for user "${t.user}" is too insecure. Must be at least ${MIN_TOKEN_LENGTH} characters long.`
         );
       }
     }
