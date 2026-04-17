@@ -59,7 +59,7 @@ middlewares:
 | --------- | ------- | ------------------------------------------------------------------------------------------------------- |
 | `enabled` | boolean | Enables or disables the plugin. Default is `true`.                                                      |
 | `tokens`  | array   | A list of token configurations.                                                                         |
-| `key`     | string  | **Required.** The static token. It must be at least 16 characters long.                                 |
+| `key`     | string  | **Required.** The static token. It must be at least 32 characters long.                                 |
 | `user`    | string  | **Required.** The user name that will be associated with the token.                                     |
 | `readonly`| boolean | If `true`, the token will only have read access. Write actions like `publish` will be forbidden. Default is `false`. |
 

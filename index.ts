@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
 
 const LOG_TAG = 'verdaccio-static-access-token';
-const MIN_TOKEN_LENGTH = 16;
+const MIN_TOKEN_LENGTH = 32;
 
 interface StaticTokenConfig {
   key: string;
@@ -100,21 +100,23 @@ class StaticAccessTokenMiddleware {
       `[${LOG_TAG}] register_middlewares loaded ${this.tokens.length} tokens`
     );
 
+    const hashHeader = (header: string): string =>
+      crypto.createHash('sha256').update(header).digest('hex');
+
     const accessTokens = new Map(
-      this.tokens
-        .map((_) => `Bearer ${Buffer.from(_.key).toString('base64')}`)
-        .map((authHeader, i) => [authHeader, this.tokens[i]] as const)
-    );    
+      this.tokens.map((t) => [
+        hashHeader(`Bearer ${Buffer.from(t.key).toString('base64')}`),
+        t,
+      ] as const)
+    );
 
     app.use((req: Request, res: Response, next: NextFunction) => {
       if (!req.headers?.authorization) {
         return next();
       }
 
-      const authHeader = req.headers.authorization;
-      if (accessTokens.has(authHeader)) {
-        const overwrite = accessTokens.get(authHeader)!;
-
+      const overwrite = accessTokens.get(hashHeader(req.headers.authorization));
+      if (overwrite) {
         if (overwrite.readonly) {
           const writeMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
           if (writeMethods.includes(req.method.toUpperCase())) {
@@ -146,6 +148,7 @@ class StaticAccessTokenMiddleware {
   ): string {
     const header = { alg: 'HS256', typ: 'JWT' as const };
 
+    const now = Math.floor(Date.now() / 1000);
     const payload = {
       name: user,
       groups: readonly
@@ -157,8 +160,11 @@ class StaticAccessTokenMiddleware {
             '@authenticated',
             'ci-readwrite',
           ],
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+      iat: now,
+      exp: now + 60 * 60 * 24,
+      iss: LOG_TAG,
+      aud: 'verdaccio-registry',
+      jti: crypto.randomUUID(),
     };
 
     const base64Url = (obj: object): string =>
